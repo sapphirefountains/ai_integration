@@ -20,6 +20,7 @@
             "options": "AI Allowed DocType"
         }
     ],
+    "in_global_search": 1,
     "issingle": 1,
     "links": [],
     "modified": "2024-12-08 14:00:00.000000",
