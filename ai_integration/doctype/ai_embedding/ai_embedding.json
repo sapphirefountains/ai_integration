@@ -38,6 +38,7 @@
             "label": "Embedding Vector"
         }
     ],
+    "in_global_search": 1,
     "index_web_pages_for_search": 1,
     "links": [],
     "modified": "2024-12-08 14:00:00.000000",
