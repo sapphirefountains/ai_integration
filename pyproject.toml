@@ -1,9 +1,9 @@
 [project]
-name = "frappe_app_template"
+name = "ai_integration"
 authors = [
     { name = "Sapphire Fountains", email = "info@sapphirefountains.com"}
 ]
-description = "Template for a new Frappe app."
+description = "AI Integration for Frappe"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]

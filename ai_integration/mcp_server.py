@@ -5,6 +5,8 @@ import asyncio
 from typing import List, Dict, Any
 from ai_integration.ai_integration.doctype.ai_api_key.ai_api_key import get_api_key
 
+from ai_integration.ai_integration.doctype.ai_integration_settings.ai_integration_settings import get_allowed_doctypes
+
 # Initialize MCP Server
 mcp_server = Server("ai_integration_mcp")
 
@@ -14,33 +16,48 @@ def get_active_llm_key(provider="Gemini API Studio"):
 	"""
 	return get_api_key(provider)
 
-
 @mcp_server.list_resources()
 async def list_resources() -> List[Dict[str, Any]]:
 	"""
 	List available resources exposed by this Frappe app via MCP.
+	Filters based on allowed DocTypes in AI Integration Settings.
 	"""
-	# Example: Exposing a list of ToDo items or similar text/data resources from Frappe
-	return [
-		{
-			"uri": "frappe://todo/list",
-			"name": "ToDo List",
+	allowed_doctypes = get_allowed_doctypes()
+	resources = []
+	
+	for dt in allowed_doctypes:
+		resources.append({
+			"uri": f"frappe://{dt}/list",
+			"name": f"{dt} List",
 			"mimeType": "application/json",
-		}
-	]
+		})
+		
+	return resources
 
 @mcp_server.read_resource()
 async def read_resource(uri: str) -> str:
 	"""
 	Read a specific resource.
 	"""
-	if uri == "frappe://todo/list":
+	if uri.startswith("frappe://") and "/list" in uri:
+		doctype = uri.split("frappe://")[1].split("/list")[0]
+		
+		# Validation
+		allowed_doctypes = get_allowed_doctypes()
+		if doctype not in allowed_doctypes:
+			raise ValueError(f"Access to DocType '{doctype}' is not allowed by AI Integration Settings.")
+
 		# In a real app, query frappe.get_list('ToDo')
 		# This requires the sync context methods if running in async loop, 
 		# or using frappe.get_doc inside a sync wrapper if not supported in async directly.
-		# For demonstration, returning static string.
-		todos = frappe.get_all("ToDo", fields=["name", "description", "status"], limit=5)
-		return str(todos)
+		
+		# Define a sync wrapper
+		def _get_list_sync(dt):
+			return frappe.get_all(dt, fields=["*"], limit=20)
+
+		data = await asyncio.to_thread(_get_list_sync, doctype)
+		return str(data)
+
 	raise ValueError(f"Resource not found: {uri}")
 
 @mcp_server.list_tools()
