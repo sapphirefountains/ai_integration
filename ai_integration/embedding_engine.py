@@ -1,5 +1,5 @@
 import frappe
-import google.generativeai as genai
+from google import genai
 from frappe.utils import cleanhtml
 from ai_integration.ai_integration.doctype.ai_api_key.ai_api_key import get_api_key
 from ai_integration.ai_integration.doctype.ai_integration_settings.ai_integration_settings import get_allowed_doctypes
@@ -7,13 +7,13 @@ from ai_integration.ai_integration.doctype.ai_integration_settings.ai_integratio
 @frappe.whitelist()
 def generate_embeddings():
 	"""
-	Generates embeddings for all records in allowed DocTypes.
+	Generates embeddings for all records in allowed DocTypes using the google-genai SDK.
 	"""
 	api_key = get_api_key("Gemini API Studio")
 	if not api_key:
 		frappe.throw("Gemini API Key not found or active in AI API Key DocType.")
 
-	genai.configure(api_key=api_key)
+	client = genai.Client(api_key=api_key)
 	
 	allowed_doctypes = get_allowed_doctypes()
 	if not allowed_doctypes:
@@ -22,12 +22,11 @@ def generate_embeddings():
 	generated_count = 0
 	
 	try:
-		model = "models/embedding-001" 
+		# google-genai typically uses 'models/text-embedding-004' or similar.
+		# Using a generic text embedding model.
+		model_id = "text-embedding-004" 
 		
 		for dt in allowed_doctypes:
-			# Fetch records - basic logic: get all name + title/subject/description fields
-			# Optimizing this requires clearer mapping, but for now we try common fields
-			# or just 'name' if nothing else matches.
 			meta = frappe.get_meta(dt)
 			title_field = meta.title_field or "name"
 			fields_to_fetch = ["name", title_field]
@@ -51,30 +50,30 @@ def generate_embeddings():
 				if not original_text:
 					continue
 
-				# Check if embedding already exists to avoid re-work (optional optimization)
 				existing = frappe.db.exists("AI Embedding", {
 					"reference_doctype": dt,
 					"reference_name": record.name
 				})
 				
 				if not existing:
-					# Call API
-					result = genai.embed_content(
-						model=model,
-						content=original_text,
-						task_type="retrieval_document",
-						title=str(record.get(title_field))
+					# Call API using new SDK
+					response = client.models.embed_content(
+						model=model_id,
+						contents=original_text,
+						config={
+							"task_type": "RETRIEVAL_DOCUMENT",
+							"title": str(record.get(title_field))
+						}
 					)
 					
-					embedding_vector = result['embedding']
+					embedding_vector = response.embeddings[0].values
 					
-					# Save
 					doc = frappe.get_doc({
 						"doctype": "AI Embedding",
 						"reference_doctype": dt,
 						"reference_name": record.name,
 						"original_text": original_text,
-						"embedding_vector": str(embedding_vector) # Storing as string representation of list
+						"embedding_vector": str(list(embedding_vector))
 					})
 					doc.insert(ignore_permissions=True)
 					generated_count += 1
