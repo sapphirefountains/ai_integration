@@ -54,6 +54,28 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "AI Embedding",
+   "link_count": 0,
+   "link_to": "AI Embedding",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "AI Chat",
+   "link_count": 0,
+   "link_to": "ai-chat",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
  "modified": "2024-12-08 14:00:00.000000",
@@ -68,6 +90,9 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Employee"
   }
  ],
  "sequence_id": 1.0,

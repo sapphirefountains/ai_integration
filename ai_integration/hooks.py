@@ -15,7 +15,7 @@ add_to_apps_screen = [
 	{
 		"name": "ai_integration",
 		"title": "AI Integration",
-		"route": "/app/ai_integration",
+		"route": "/app/ai-integration",
 	}
 ]
 
