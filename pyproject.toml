@@ -13,6 +13,7 @@ dependencies = [
     "numpy",
     "google-adk",
     "mcp",
+    "alembic>=1.13.0",
 ]
 
 [build-system]
