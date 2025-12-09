@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:name",
  "creation": "2024-05-23 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
