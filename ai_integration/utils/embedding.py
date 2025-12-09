@@ -1,6 +1,6 @@
 import frappe
 import json
-import google.generativeai as genai
+from google import genai
 from frappe.utils import get_site_name
 
 def get_api_key():
@@ -10,22 +10,21 @@ def get_api_key():
     return settings.get_password("google_api_key")
 
 def get_embedding_model():
-    return "models/embedding-001"
+    return "gemini-embedding-001"
 
 def generate_embedding_vector(text):
     api_key = get_api_key()
-    genai.configure(api_key=api_key)
+    client = genai.Client(api_key=api_key)
 
     # Gemini embedding model
     model = get_embedding_model()
 
     try:
-        result = genai.embed_content(
+        result = client.models.embed_content(
             model=model,
-            content=text,
-            task_type="retrieval_document"
+            contents=text,
         )
-        return result['embedding']
+        return result.embeddings[0].values
     except Exception as e:
         frappe.log_error(f"Error generating embedding: {str(e)}", "AI Embedding Error")
         return None
@@ -97,9 +96,22 @@ def delete_embeddings_for_doc(doc):
         "reference_name": doc.name
     })
 
+def clear_all_embeddings():
+    """Clears all entries in the AI Embedding DocType."""
+    frappe.db.delete("AI Embedding")
+    frappe.db.commit()
+
+def rebuild_all_embeddings():
+    """Clears all existing embeddings and regenerates them for enabled doctypes."""
+    clear_all_embeddings()
+    generate_all_embeddings_task()
+
 def generate_all_embeddings_task():
     """Iterates through all enabled doctypes and generates embeddings."""
     settings = frappe.get_single("AI Integration Settings")
+
+    if not settings.enabled_doctypes:
+        return
 
     for row in settings.enabled_doctypes:
         doctype = row.doctype_name
