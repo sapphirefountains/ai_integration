@@ -11,15 +11,13 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "ai_integration",
-# 		"logo": "/assets/ai_integration/logo.png",
-# 		"title": "AI Integration",
-# 		"route": "/ai_integration",
-# 		"has_permission": "ai_integration.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "ai_integration",
+		"title": "AI Integration",
+		"route": "/app/ai_integration",
+	}
+]
 
 # Includes in <head>
 # ------------------
