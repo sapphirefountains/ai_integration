@@ -1,7 +1,7 @@
 import frappe
 import json
 import numpy as np
-import google.generativeai as genai
+from google import genai
 from ai_integration.utils.embedding import generate_embedding_vector
 
 def get_settings():
@@ -85,15 +85,19 @@ def send_message(message):
         full_prompt = f"{system_instruction}\n\nContext:\n{context_text}\n\nUser Question: {message}"
 
         # 5. Call Gemini
-        genai.configure(api_key=settings.get_password("google_api_key"))
+        api_key = settings.get_password("google_api_key")
+        client = genai.Client(api_key=api_key)
+
         model_name = settings.google_model or "gemini-3-pro-preview"
 
         # Handle 'preview' model names or standard names properly
         # Google GenAI library expects specific model names.
         # If user typed 'gemini-1.5-pro', we use that.
 
-        model = genai.GenerativeModel(model_name)
-        response = model.generate_content(full_prompt)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=full_prompt
+        )
 
         return {
             "response": response.text,
