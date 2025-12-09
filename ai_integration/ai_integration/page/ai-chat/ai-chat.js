@@ -39,7 +39,7 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
     `);
 
     // Add styles dynamically or via CSS file
-    frappe.require('/assets/ai_integration/css/ai_chat.css');
+    frappe.require('/assets/ai_integration/css/ai-chat.css');
 
     // Initialize Vue
     // Since we are in standard desk JS, we can use a library loader or just assume Vue is available if we load it.
