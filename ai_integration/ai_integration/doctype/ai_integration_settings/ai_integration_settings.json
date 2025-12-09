@@ -7,7 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "google_api_key",
-  "google_model"
+  "google_model",
+  "enabled_doctypes_section",
+  "enabled_doctypes",
+  "actions_section",
+  "generate_embeddings_html"
  ],
  "fields": [
   {
@@ -20,6 +24,27 @@
    "fieldname": "google_model",
    "fieldtype": "Data",
    "label": "Google Model"
+  },
+  {
+   "fieldname": "enabled_doctypes_section",
+   "fieldtype": "Section Break",
+   "label": "Embedding Configuration"
+  },
+  {
+   "fieldname": "enabled_doctypes",
+   "fieldtype": "Table",
+   "label": "Enabled DocTypes",
+   "options": "AI Integration Enabled DocType"
+  },
+  {
+   "fieldname": "actions_section",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "fieldname": "generate_embeddings_html",
+   "fieldtype": "HTML",
+   "label": "Generate Embeddings Button"
   }
  ],
  "issingle": 1,
