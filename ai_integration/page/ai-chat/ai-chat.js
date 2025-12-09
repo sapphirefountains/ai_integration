@@ -51,7 +51,7 @@ frappe.pages['ai-chat'].on_page_load = function (wrapper) {
         showTyping();
 
         frappe.call({
-            method: "ai_integration.ai_integration.page.ai_chat.ai_chat.message",
+            method: "ai_integration.utils.chat.message",
             args: {
                 message: msg
             },
