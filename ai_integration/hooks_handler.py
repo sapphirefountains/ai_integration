@@ -15,7 +15,14 @@ def on_doc_update(doc, method):
 
     # Getting settings every time might be slight overhead but safe for now.
     settings = frappe.get_single("AI Integration Settings")
-    enabled = [d.doctype_name for d in settings.enabled_doctypes]
+
+    # Safely get the table, handling AttributeError or None if settings not fully loaded
+    enabled_doctypes = getattr(settings, "enabled_doctypes", None)
+
+    if not enabled_doctypes:
+        return
+
+    enabled = [d.doctype_name for d in enabled_doctypes]
 
     if doc.doctype in enabled:
         try:
@@ -32,7 +39,14 @@ def on_doc_trash(doc, method):
         return
 
     settings = frappe.get_single("AI Integration Settings")
-    enabled = [d.doctype_name for d in settings.enabled_doctypes]
+
+    # Safely get the table, handling AttributeError or None
+    enabled_doctypes = getattr(settings, "enabled_doctypes", None)
+
+    if not enabled_doctypes:
+        return
+
+    enabled = [d.doctype_name for d in enabled_doctypes]
 
     if doc.doctype in enabled:
         try:
