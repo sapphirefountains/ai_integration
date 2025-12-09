@@ -1,0 +1,59 @@
+<div class="row">
+	<div class="col-md-12">
+		<div class="ai-chat-container" style="display: flex; flex-direction: column; height: calc(100vh - 200px); border: 1px solid #d1d8dd; border-radius: 8px; background: #fff;">
+			<div class="chat-history" style="flex: 1; overflow-y: auto; padding: 20px; border-bottom: 1px solid #d1d8dd;">
+				<!-- Messages will be appended here -->
+				<div class="text-center text-muted intro-message" style="margin-top: 20%;">
+					<h4>How can I help you today?</h4>
+					<p>Ask questions about your permitted documents.</p>
+				</div>
+			</div>
+			<div class="chat-input-area" style="padding: 15px; background: #f9f9f9; border-radius: 0 0 8px 8px;">
+				<div class="input-group">
+					<input type="text" class="form-control chat-input" placeholder="Type your message..." style="height: 45px;">
+					<div class="input-group-append">
+						<button class="btn btn-primary btn-send" type="button" style="height: 45px; width: 100px;">Send</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.chat-message {
+		margin-bottom: 15px;
+		display: flex;
+		flex-direction: column;
+	}
+	.chat-message.user {
+		align-items: flex-end;
+	}
+	.chat-message.bot {
+		align-items: flex-start;
+	}
+	.message-bubble {
+		max-width: 70%;
+		padding: 10px 15px;
+		border-radius: 15px;
+		position: relative;
+	}
+	.chat-message.user .message-bubble {
+		background-color: var(--primary);
+		color: white;
+		border-bottom-right-radius: 2px;
+	}
+	.chat-message.bot .message-bubble {
+		background-color: var(--bg-light-gray);
+		color: var(--text-color);
+		border: 1px solid var(--border-color);
+		border-bottom-left-radius: 2px;
+	}
+	.typing-indicator {
+		display: inline-block;
+		padding: 10px 15px;
+		background-color: var(--bg-light-gray);
+		border-radius: 15px;
+		color: #666;
+	}
+</style>
