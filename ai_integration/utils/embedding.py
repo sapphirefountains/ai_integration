@@ -116,11 +116,21 @@ def generate_all_embeddings_task():
     for row in settings.enabled_doctypes:
         doctype = row.doctype_name
         # Get all docs of this type
-        docs = frappe.get_all(doctype, fields=["name"])
+        docs = frappe.get_all(doctype, pluck="name", limit=None)
 
-        for d in docs:
-            doc = frappe.get_doc(doctype, d.name)
+        # Get existing embeddings
+        existing_embeddings = set(frappe.get_all("AI Embedding",
+            filters={"reference_doctype": doctype},
+            pluck="reference_name",
+            limit=None
+        ))
+
+        for name in docs:
+            if name in existing_embeddings:
+                continue
+
+            doc = frappe.get_doc(doctype, name)
             try:
                 create_embedding_for_doc(doc)
             except Exception as e:
-                frappe.log_error(f"Failed to embed {doctype} {d.name}: {e}", "Embedding Generation Task")
+                frappe.log_error(f"Failed to embed {doctype} {name}: {e}", "Embedding Generation Task")
