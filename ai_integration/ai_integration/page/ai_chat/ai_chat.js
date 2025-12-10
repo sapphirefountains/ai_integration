@@ -9,7 +9,7 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
     // Using an ES module approach or global script
 
     // We will inject the Vue App container
-    $(wrapper).find('.layout-main-section').html(`
+    page.main.html(`
         <div id="ai-chat-app" class="ai-chat-container">
             <!-- Vue App Mount Point -->
             <div class="chat-glass">
@@ -46,7 +46,7 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
     // Frappe v15 usually bundles Vue 3. Let's try to use the global Vue or load it.
 
     if (typeof Vue === 'undefined') {
-         frappe.require('https://unpkg.com/vue@3/dist/vue.global.prod.js', () => {
+         frappe.require('/assets/ai_integration/js/vue.global.prod.js', () => {
              initVue(wrapper);
          });
     } else {
