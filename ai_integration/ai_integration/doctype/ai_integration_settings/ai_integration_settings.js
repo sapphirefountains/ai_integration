@@ -9,7 +9,7 @@ frappe.ui.form.on('AI Integration Settings', {
 		frm.fields_dict['generate_embeddings_html'].$wrapper.find('#btn-generate-embeddings').on('click', () => {
 			frappe.confirm('Are you sure you want to generate embeddings for all enabled DocTypes? This might take a while.', () => {
 				frappe.call({
-					method: 'ai_integration.doctype.ai_integration_settings.ai_integration_settings.generate_all_embeddings',
+					method: 'ai_integration.ai_integration.doctype.ai_integration_settings.ai_integration_settings.generate_all_embeddings',
 					freeze: true,
 					freeze_message: 'Generating Embeddings...',
 					callback: function(r) {
