@@ -19,7 +19,7 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
                 <div class="chat-messages" ref="messagesContainer">
                     <div v-for="(msg, index) in messages" :key="index" :class="['message-row', msg.role]">
                         <div class="message-bubble">
-                            <div class="message-content">{{ msg.content }}</div>
+                            <div class="message-content" v-html="parseMarkdown(msg.content)"></div>
                         </div>
                     </div>
                     <div v-if="loading" class="message-row ai">
@@ -46,11 +46,13 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
     // Frappe v15 usually bundles Vue 3. Let's try to use the global Vue or load it.
 
     if (typeof Vue === 'undefined') {
-         frappe.require('/assets/ai_integration/js/vue.global.prod.js', () => {
+         frappe.require(['/assets/ai_integration/js/vue.global.prod.js', '/assets/ai_integration/js/marked.umd.js', '/assets/ai_integration/js/purify.min.js'], () => {
              initVue(wrapper);
          });
     } else {
-        initVue(wrapper);
+         frappe.require(['/assets/ai_integration/js/marked.umd.js', '/assets/ai_integration/js/purify.min.js'], () => {
+             initVue(wrapper);
+         });
     }
 }
 
@@ -59,6 +61,18 @@ function initVue(wrapper) {
 
     const app = createApp({
         setup() {
+            const parseMarkdown = (content) => {
+                if (typeof marked !== 'undefined' && marked.parse) {
+                    let rawHtml = marked.parse(content);
+                    if (typeof DOMPurify !== 'undefined') {
+                        return DOMPurify.sanitize(rawHtml);
+                    }
+                    // Fail-closed: If sanitizer is missing, do not render HTML.
+                    return content;
+                }
+                return content;
+            };
+
             const messages = ref([
                 { role: 'ai', content: 'Hello! I can help you find information in your ERP. What would you like to know?' }
             ]);
@@ -109,7 +123,8 @@ function initVue(wrapper) {
                 userInput,
                 sendMessage,
                 loading,
-                messagesContainer
+                messagesContainer,
+                parseMarkdown
             };
         }
     });
