@@ -5,9 +5,6 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-    // Load Vue 3 from CDN (or local if preferred, but CDN is quick for this context)
-    // Using an ES module approach or global script
-
     // We will inject the Vue App container
     page.main.html(`
         <div id="ai-chat-app" class="ai-chat-container">
@@ -38,13 +35,10 @@ frappe.pages['ai-chat'].on_page_load = function(wrapper) {
         </div>
     `);
 
-    // Add styles dynamically or via CSS file
+    // Add styles dynamically
     frappe.require('/assets/ai_integration/css/ai-chat.css');
 
     // Initialize Vue
-    // Since we are in standard desk JS, we can use a library loader or just assume Vue is available if we load it.
-    // Frappe v15 usually bundles Vue 3. Let's try to use the global Vue or load it.
-
     if (typeof Vue === 'undefined') {
          frappe.require(['/assets/ai_integration/js/vue.global.prod.js', '/assets/ai_integration/js/marked.umd.js', '/assets/ai_integration/js/purify.min.js'], () => {
              initVue(wrapper);
@@ -61,14 +55,47 @@ function initVue(wrapper) {
 
     const app = createApp({
         setup() {
+            const processDocumentLinks = (html) => {
+                // Regex to find potential document references like "Sales Invoice SINV-0001" or "Invoice-001"
+                // It looks for a sequence of words (DocType) followed by a hyphenated ID.
+                // It also handles generic "Invoice-001" cases where the DocType might be implied or explicit.
+                // We use a broader regex and try to smart-link.
+                // Pattern: (DocType) (Name)
+                // e.g. "Sales Invoice SINV-2023-001"
+                // e.g. "Invoice SINV-001"
+
+                // Let's iterate over common patterns.
+                // Basic pattern: \b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+([A-Z0-9]+-[A-Z0-9-]+)\b
+                // This captures "Sales Invoice SINV-001" -> Group 1: Sales Invoice, Group 2: SINV-001
+
+                const docTypePattern = /\b([A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)*)\s+([A-Z0-9]+-[A-Z0-9-]+)\b/g;
+
+                return html.replace(docTypePattern, (match, p1, p2) => {
+                    // p1 is likely the DocType (e.g. "Sales Invoice")
+                    // p2 is the Name (e.g. "SINV-001")
+
+                    // Basic validation to avoid false positives (e.g. "Model X-100") - hard to do perfectly without backend check.
+                    // But we can assume capital letters for DocType.
+
+                    // Normalize DocType for URL: "Sales Invoice" -> "sales-invoice"
+                    const doctypeSlug = p1.toLowerCase().replace(/\s+/g, '-');
+
+                    // Construct URL
+                    const url = `/app/${doctypeSlug}/${p2}`;
+
+                    return `<a href="${url}" class="doc-link" target="_blank" title="Open ${p1}">${match}</a>`;
+                });
+            };
+
             const parseMarkdown = (content) => {
                 if (typeof marked !== 'undefined' && marked.parse) {
                     let rawHtml = marked.parse(content);
                     if (typeof DOMPurify !== 'undefined') {
-                        return DOMPurify.sanitize(rawHtml);
+                        // Allow 'target' and 'class' attributes for our links
+                        const cleanHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'class'] });
+                         return processDocumentLinks(cleanHtml);
                     }
-                    // Fail-closed: If sanitizer is missing, do not render HTML.
-                    return content;
+                    return processDocumentLinks(rawHtml);
                 }
                 return content;
             };
