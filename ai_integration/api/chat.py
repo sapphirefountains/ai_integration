@@ -95,6 +95,9 @@ def send_message(message):
         # Handle 'preview' model names or standard names properly
         # Google GenAI library expects specific model names.
         # If user typed 'gemini-1.5-pro', we use that.
+        model_name = model_name.strip()
+        if model_name.startswith("models/"):
+            model_name = model_name[7:]
 
         response = client.models.generate_content(
             model=model_name,
