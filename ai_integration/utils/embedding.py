@@ -1,5 +1,6 @@
 import frappe
 import json
+import tiktoken
 from google import genai
 from frappe.utils import get_site_name
 
@@ -30,7 +31,39 @@ def generate_embedding_vector(text):
         return None
 
 def chunk_text(text, chunk_size=1000, overlap=100):
-    """Simple chunking by characters for now. Can be improved to token based."""
+    """Chunking by tokens using tiktoken (cl100k_base)."""
+    if not text:
+        return []
+
+    try:
+        enc = tiktoken.get_encoding("cl100k_base")
+    except Exception:
+        # Fallback if tiktoken fails for some reason
+        frappe.log_error("tiktoken encoding load failed, falling back to char chunking", "AI Embedding")
+        return _chunk_text_char(text, chunk_size * 4, overlap * 4)
+
+    tokens = enc.encode(text)
+    if not tokens:
+        return []
+
+    chunks = []
+    start = 0
+    tokens_len = len(tokens)
+
+    while start < tokens_len:
+        end = min(start + chunk_size, tokens_len)
+        chunk_tokens = tokens[start:end]
+        chunks.append(enc.decode(chunk_tokens))
+
+        if end == tokens_len:
+            break
+
+        start += (chunk_size - overlap)
+
+    return chunks
+
+def _chunk_text_char(text, chunk_size, overlap):
+    """Simple chunking by characters."""
     if not text:
         return []
 
