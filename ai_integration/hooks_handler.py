@@ -1,6 +1,20 @@
 import frappe
 from ai_integration.utils.embedding import create_embedding_for_doc, delete_embeddings_for_doc
 
+def get_enabled_doctypes():
+    """
+    Returns a list of enabled doctypes for embedding integration, cached.
+    """
+    def fetch_enabled_doctypes():
+        settings = frappe.get_single("AI Integration Settings")
+        # Safely get the table, handling AttributeError or None if settings not fully loaded
+        enabled_doctypes = getattr(settings, "enabled_doctypes", None)
+        if not enabled_doctypes:
+            return []
+        return [d.doctype_name for d in enabled_doctypes]
+
+    return frappe.cache().get_value("ai_integration:enabled_doctypes", generator=fetch_enabled_doctypes)
+
 def on_doc_update(doc, method):
     """
     Hook to generate embeddings when a document is saved.
@@ -9,20 +23,9 @@ def on_doc_update(doc, method):
     if doc.doctype == "AI Integration Settings":
         return
 
-    # Check if this doctype is enabled
-    # We use frappe.cache to avoid DB hitting on every save if possible,
-    # but for now simpler is direct check or getting settings.
-
-    # Getting settings every time might be slight overhead but safe for now.
-    settings = frappe.get_single("AI Integration Settings")
-
-    # Safely get the table, handling AttributeError or None if settings not fully loaded
-    enabled_doctypes = getattr(settings, "enabled_doctypes", None)
-
-    if not enabled_doctypes:
+    enabled = get_enabled_doctypes()
+    if not enabled:
         return
-
-    enabled = [d.doctype_name for d in enabled_doctypes]
 
     if doc.doctype in enabled:
         try:
@@ -38,15 +41,9 @@ def on_doc_trash(doc, method):
     if doc.doctype == "AI Integration Settings":
         return
 
-    settings = frappe.get_single("AI Integration Settings")
-
-    # Safely get the table, handling AttributeError or None
-    enabled_doctypes = getattr(settings, "enabled_doctypes", None)
-
-    if not enabled_doctypes:
+    enabled = get_enabled_doctypes()
+    if not enabled:
         return
-
-    enabled = [d.doctype_name for d in enabled_doctypes]
 
     if doc.doctype in enabled:
         try:
