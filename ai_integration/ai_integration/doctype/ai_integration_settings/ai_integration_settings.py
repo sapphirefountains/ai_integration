@@ -6,7 +6,8 @@ from frappe.model.document import Document
 from ai_integration.utils.embedding import generate_all_embeddings_task
 
 class AIIntegrationSettings(Document):
-	pass
+	def on_update(self):
+		frappe.cache().delete_value("ai_integration:enabled_doctypes")
 
 @frappe.whitelist()
 def generate_all_embeddings():
