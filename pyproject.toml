@@ -15,6 +15,7 @@ dependencies = [
     "mcp",
     "alembic>=1.13.0",
     "tiktoken",
+    "faiss-cpu",
 ]
 
 [build-system]

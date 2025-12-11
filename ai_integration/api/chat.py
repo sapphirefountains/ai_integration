@@ -30,32 +30,34 @@ def send_message(message):
         if not query_vector:
             return {"error": "Failed to generate embedding for query."}
 
-        # 2. Fetch all embeddings
-        # Optimization: In a real prod scenario, we'd use a vector DB.
-        # Here we fetch all vectors (expensive if many docs).
-        # We only fetch necessary fields to keep it lighter.
+        # 2. Search Vector DB
+        # Optimization: Use Faiss based Vector Store
+        from ai_integration.utils.vector_store import get_vector_store
+        vector_store = get_vector_store()
 
-        all_embeddings = frappe.get_all("AI Embedding",
-            fields=["name", "reference_doctype", "reference_name", "content", "vector", "chunk_index"])
+        # Get more candidates than needed to account for permission filtering
+        search_results = vector_store.search(query_vector, k=20)
 
         scored_docs = []
+        if search_results:
+            # Filter by threshold
+            valid_results = [r for r in search_results if r['score'] > 0.4]
 
-        for emb in all_embeddings:
-            if not emb.vector:
-                continue
+            if valid_results:
+                names = [r['name'] for r in valid_results]
+                # Bulk fetch content for matched embeddings
+                docs = frappe.get_all("AI Embedding",
+                    filters={"name": ["in", names]},
+                    fields=["name", "reference_doctype", "reference_name", "content"]
+                )
+                doc_map = {d.name: d for d in docs}
 
-            vec = json.loads(emb.vector)
-            score = cosine_similarity(query_vector, vec)
-
-            # Basic threshold to filter noise
-            if score > 0.4:
-                scored_docs.append({
-                    "score": score,
-                    "doc": emb
-                })
-
-        # Sort by score desc
-        scored_docs.sort(key=lambda x: x['score'], reverse=True)
+                for res in valid_results:
+                    if res['name'] in doc_map:
+                        scored_docs.append({
+                            "score": res['score'],
+                            "doc": doc_map[res['name']]
+                        })
 
         # 3. Filter by Permission & Top K
         top_k = 5
