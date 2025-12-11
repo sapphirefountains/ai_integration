@@ -91,8 +91,25 @@ def get_doc_content_text(doc):
             if value:
                 content.append(f"{field.label}: {value}")
 
-    # Also handle child tables if needed?
-    # For now, let's stick to main parent fields to keep it simple, or simple recursion.
+        elif field.fieldtype == 'Table':
+            rows = doc.get(field.fieldname)
+            if rows:
+                content.append(f"\n--- {field.label} ---")
+                try:
+                    child_meta = frappe.get_meta(field.options)
+                    for row in rows:
+                        row_content = []
+                        for child_field in child_meta.fields:
+                            if child_field.fieldtype in ['Text', 'Text Editor', 'Small Text', 'Long Text', 'Code', 'Data', 'Select']:
+                                val = row.get(child_field.fieldname)
+                                if val:
+                                    row_content.append(f"{child_field.label}: {val}")
+
+                        if row_content:
+                            content.append(", ".join(row_content))
+                except Exception:
+                    # If fetching meta fails or other issue, skip child table
+                    pass
 
     return "\n".join(content)
 
