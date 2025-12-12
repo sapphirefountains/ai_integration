@@ -29,7 +29,7 @@ def on_doc_update(doc, method):
 
     if doc.doctype in enabled:
         try:
-            frappe.enqueue(create_embedding_for_doc, doc=doc, queue='default')
+            frappe.enqueue(create_embedding_for_doc, doc=doc, queue='default', enqueue_after_commit=True)
         except Exception:
             # Don't block the save if enqueue fails, but log it
             frappe.log_error(f"Failed to enqueue embedding for {doc.doctype} {doc.name}")
