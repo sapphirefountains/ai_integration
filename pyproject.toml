@@ -13,6 +13,7 @@ dependencies = [
     "numpy",
     "google-adk",
     "mcp",
+    "frappe-mcp",
     "alembic>=1.13.0",
     "tiktoken",
     "faiss-cpu",
