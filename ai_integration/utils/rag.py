@@ -61,7 +61,7 @@ def fetch_fac_tools(user):
         frappe.log_error(f"Error fetching FAC tools: {str(e)}")
         return []
 
-def answer_user_question(message):
+def answer_user_question(message, chat_history=None):
     try:
         settings = get_settings()
         if not settings.google_api_key:
@@ -122,7 +122,13 @@ def answer_user_question(message):
             "Always be polite and professional."
         )
 
-        full_prompt = f"{system_instruction}\n\nContext:\n{context_text}\n\nUser Question: {message}"
+        history_text = ""
+        if chat_history:
+             history_text = "\n\nChat History:\n"
+             for msg in chat_history:
+                 history_text += f"{msg.get('role', 'User')}: {msg.get('content')}\n"
+
+        full_prompt = f"{system_instruction}\n\nContext:\n{context_text}{history_text}\n\nUser Question: {message}"
 
         # 5. Initialize Client
         api_key = settings.get_password("google_api_key")
