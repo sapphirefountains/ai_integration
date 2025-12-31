@@ -8,9 +8,11 @@ from ai_integration.utils.embedding import generate_embedding_vector
 # Try importing Tool Registry
 try:
     from frappe_assistant_core.core.tool_registry import get_tool_registry
-    HAS_TOOL_REGISTRY = True
+    HAS_FAC = True
 except ImportError:
-    HAS_TOOL_REGISTRY = False
+    HAS_FAC = False
+
+_TOOL_CACHE = {}
 
 def get_settings():
     return frappe.get_single("AI Integration Settings")
@@ -34,6 +36,30 @@ def adapt_tools_for_gemini(core_tools):
         gemini_tools.append(types.Tool(function_declarations=[func_decl]))
 
     return gemini_tools
+
+def fetch_fac_tools(user):
+    """
+    Fetches available tools from Frappe Assistant Core for the given user.
+    Uses a module-level cache to avoid repeated registry lookups.
+    """
+    if not HAS_FAC:
+        return []
+
+    # Check cache
+    if user in _TOOL_CACHE:
+        return _TOOL_CACHE[user]
+
+    try:
+        registry = get_tool_registry()
+        core_tools = registry.get_available_tools(user)
+        gemini_tools = adapt_tools_for_gemini(core_tools)
+
+        # Cache the result
+        _TOOL_CACHE[user] = gemini_tools
+        return gemini_tools
+    except Exception as e:
+        frappe.log_error(f"Error fetching FAC tools: {str(e)}")
+        return []
 
 def answer_user_question(message):
     try:
@@ -108,12 +134,9 @@ def answer_user_question(message):
             model_name = model_name[7:]
 
         # --- TOOL INTEGRATION LOGIC ---
-        if HAS_TOOL_REGISTRY:
+        if HAS_FAC:
             try:
-                registry = get_tool_registry()
-                # Get tools for current user
-                core_tools = registry.get_available_tools(frappe.session.user)
-                gemini_tools = adapt_tools_for_gemini(core_tools)
+                gemini_tools = fetch_fac_tools(frappe.session.user)
 
                 if gemini_tools:
                     # Create Chat Session
@@ -133,6 +156,9 @@ def answer_user_question(message):
                         turn_count += 1
                         response_parts = []
 
+                        # Need registry for execution
+                        registry = get_tool_registry()
+
                         for call in response.function_calls:
                             func_name = call.name
                             func_args = call.args
@@ -144,6 +170,13 @@ def answer_user_question(message):
                                 # Execute
                                 result = registry.execute_tool(func_name, func_args)
                                 result_data = {'result': result}
+                            except (frappe.exceptions.ValidationError, frappe.exceptions.DoesNotExist) as fe:
+                                # Structured error for expected business logic failures
+                                error_msg = f"{type(fe).__name__}: {str(fe)}"
+                                result_data = {
+                                    "status": "error",
+                                    "message": error_msg
+                                }
                             except Exception as e:
                                 frappe.log_error(f"Tool Execution Error ({func_name}): {str(e)}")
                                 result_data = {'error': str(e)}
