@@ -182,10 +182,13 @@ def answer_user_question(message):
                                 result_data = {'error': str(e)}
 
                             # Create response part
-                            response_parts.append(types.Part.from_function_response(
-                                name=func_name,
-                                response=result_data
-                            ))
+                            # Use dict directly to bypass Pydantic serialization issues in some environments
+                            response_parts.append({
+                                "function_response": {
+                                    "name": func_name,
+                                    "response": result_data
+                                }
+                            })
 
                         # Send all results back
                         if response_parts:
