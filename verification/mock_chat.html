@@ -1,3 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Verification</title>
+    <!-- Mock Vue and dependencies -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/dompurify/dist/purify.min.js"></script>
+
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="../ai_integration/public/css/ai-chat.css">
+
+    <style>
+        body { margin: 0; padding: 20px; background: #f0f4f8; font-family: sans-serif; }
+        #page-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            height: 800px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .page-head { margin-bottom: 20px; }
+
+        /* Font Awesome Mock */
+        .fa { font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div id="page-container">
+    <div class="page-head">
+        <h2>AI Chat Page Mock</h2>
+    </div>
+    <div id="chat-wrapper" style="height: 100%; position:relative;"></div>
+</div>
+
+<script>
+    // Mock Frappe Object
+    window.frappe = {
+        pages: { 'ai-chat': {} },
+        ui: {
+            make_app_page: function(opts) {
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'layout-main-section';
+                document.getElementById('chat-wrapper').appendChild(mainDiv);
+
+                return {
+                    main: {
+                        html: function(content) {
+                            mainDiv.innerHTML = content;
+                        }
+                    }
+                };
+            }
+        },
+        require: function(path, callback) {
+            // Mock require - dependencies already loaded via CDN
+            if (callback) callback();
+        },
+        call: async function(opts) {
+            console.log("Mock Call:", opts);
+
+            if (opts.method === 'ai_integration.api.chat.get_user_sessions') {
+                return {
+                    message: [
+                        { name: 'SESSION-1', title: 'Invoice Query', creation: '2023-10-27 10:00:00' },
+                        { name: 'SESSION-2', title: 'Customer Analysis', creation: '2023-10-26 15:30:00' }
+                    ]
+                };
+            }
+
+            if (opts.method === 'ai_integration.api.chat.get_session_history') {
+                return {
+                    message: [
+                        { role: 'user', content: 'Show me invoices' },
+                        { role: 'ai', content: 'Here are the invoices...' }
+                    ]
+                };
+            }
+
+            if (opts.method === 'ai_integration.api.chat.send_message') {
+                 return {
+                    message: {
+                        response: "I am a mock AI response.",
+                        session_id: opts.args.session_id || 'SESSION-NEW-' + Date.now()
+                    }
+                 };
+            }
+
+            return { message: {} };
+        },
+        msgprint: function(msg) { alert(msg); }
+    };
+
+    // Load local JS logic manually
+    // We need to slightly adjust the `frappe.pages['ai-chat'].on_page_load` execution
+    // because we don't have the full frappe event system.
+</script>
+
+<!-- Injected script content from ai_chat.js to avoid path issues and wrap execution -->
+<script>
+    // Reading content of ai_chat.js and executing it
+    // (In a real scenario I would <script src="..."> but here I want to ensure it runs immediately)
+</script>
+
+
+<script>
 frappe.pages['ai-chat'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -282,3 +391,21 @@ function initVue(wrapper) {
 
     app.mount('#ai-chat-app');
 }
+
+
+// Trigger load
+const wrapper = document.createElement('div');
+document.getElementById('chat-wrapper').appendChild(wrapper);
+
+// Call the page load handler defined in ai_chat.js
+if (frappe.pages['ai-chat'].on_page_load) {
+    frappe.pages['ai-chat'].on_page_load(wrapper);
+}
+</script>
+<script type="module">
+    // Dynamically import or just paste the logic?
+    // I will read the file in python and create this HTML with the content embedded.
+</script>
+
+</body>
+</html>
