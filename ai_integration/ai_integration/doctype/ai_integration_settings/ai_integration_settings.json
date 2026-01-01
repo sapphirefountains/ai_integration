@@ -9,6 +9,8 @@
   "google_model",
   "enabled_doctypes_section",
   "enabled_doctypes",
+  "sync_section",
+  "gcs_sync_url",
   "actions_section",
   "generate_embeddings_html"
  ],
@@ -36,6 +38,16 @@
    "options": "AI Integration Enabled DocType"
   },
   {
+   "fieldname": "sync_section",
+   "fieldtype": "Section Break",
+   "label": "Triton Sync Configuration"
+  },
+  {
+   "fieldname": "gcs_sync_url",
+   "fieldtype": "Small Text",
+   "label": "GCS Sync URL"
+  },
+  {
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -48,7 +60,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-05-23 00:00:00.000000",
+ "modified": "2024-05-24 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "AI Integration",
  "name": "AI Integration Settings",
