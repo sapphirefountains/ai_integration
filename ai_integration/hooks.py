@@ -146,7 +146,16 @@ doc_events = {
 
 # Scheduled Tasks
 # ---------------
-
+scheduler_events = {
+    "daily": [
+        # This will run the sync automatically every night
+        "ai_integration.api.sync.export_to_triton"
+    ],
+    "hourly": [
+        # Use hourly if your project statuses change frequently
+        # "ai_integration.api.sync.export_to_triton"
+    ]
+}
 # scheduler_events = {
 # 	"all": [
 # 		"ai_integration.tasks.all"
